@@ -18,10 +18,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Fasum',
+      title: 'Barbershop_plg',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink),
         useMaterial3: true,
+        scaffoldBackgroundColor: Colors.grey[200],
       ),
       home: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
