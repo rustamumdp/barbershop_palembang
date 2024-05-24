@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:barbershop_palembang/screens/home_screen.dart';
-import 'package:barbershop_palembang/screens/sign_up_screen.dart';
+import 'package:barbershopplg/screens/home_screen.dart';
+import 'package:barbershopplg/screens/sign_up_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
