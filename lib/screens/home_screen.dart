@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fasum_marcel/screens/sign_in_screen.dart';
+import 'package:barbershopplg/screens/sign_in_screen.dart';
 import 'add_post_screen.dart';
 
 class HomeScreen extends StatelessWidget {
