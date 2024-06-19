@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:barbershopplg/screens/sign_in_screen.dart';
 import 'add_post_screen.dart';
+import 'detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,7 +11,7 @@ class HomeScreen extends StatelessWidget {
   Future<void> signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => SignInScreen()));
+        MaterialPageRoute(builder: (context) => const SignInScreen()));
   }
 
   @override
@@ -37,8 +38,15 @@ class HomeScreen extends StatelessWidget {
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(child: Text('Tidak ada postingan tersedia'));
           }
+
+          // Debug log
+          print('Documents: ${snapshot.data!.docs.length}');
+          for (var doc in snapshot.data!.docs) {
+            print('Document: ${doc.id} Data: ${doc.data()}');
+          }
+
           return GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3, // Jumlah kolom
               childAspectRatio: 1, // Rasio aspek untuk membuat gambar kotak
             ),
@@ -51,57 +59,82 @@ class HomeScreen extends StatelessWidget {
               var formattedDate = '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}';
 
               var username = data.containsKey('username') ? data['username'] : 'Anonim';
-              var imageUrl = data.containsKey('image_url') ? data['image_url'] : null;
+              var imageUrl = data.containsKey('image_url') ? data['image_url'] : '';
               var text = data.containsKey('text') ? data['text'] : '';
 
-              return Card(
-                margin: EdgeInsets.all(4.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (imageUrl != null)
-                      Expanded(
-                        child: Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
-                      )
-                    else
-                      Expanded(
-                        child: Center(child: Text('Gambar tidak tersedia')),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            username,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            formattedDate,
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 10,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            text,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+              // Debug log
+              print('Post #$index:');
+              print('Username: $username');
+              print('Image URL: $imageUrl');
+              print('Text: $text');
+              print('Formatted Date: $formattedDate');
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailScreen(
+                        username: username,
+                        imageUrl: imageUrl,
+                        text: text,
+                        formattedDate: formattedDate,
                       ),
                     ),
-                  ],
+                  );
+                },
+                child: Card(
+                  margin: const EdgeInsets.all(4.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (imageUrl.isNotEmpty)
+                        Expanded(
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(child: Text('Gagal memuat gambar'));
+                            },
+                          ),
+                        )
+                      else
+                        const Expanded(
+                          child: Center(child: Text('Gambar tidak tersedia')),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              username,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              formattedDate,
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 10,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              text,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -112,10 +145,10 @@ class HomeScreen extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddPostScreen()),
+            MaterialPageRoute(builder: (context) => const AddPostScreen()),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -7,19 +7,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AddPostScreen extends StatefulWidget {
+  const AddPostScreen({super.key});
+
   @override
   _AddPostScreenState createState() => _AddPostScreenState();
 }
 
 class _AddPostScreenState extends State<AddPostScreen> {
-  TextEditingController _postTextController = TextEditingController();
+  final TextEditingController _postTextController = TextEditingController();
   String? _imageUrl;
   XFile? _image;
   final User? user = FirebaseAuth.instance.currentUser;
 
   Future<void> _getImageFromCamera() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
     if (image != null) {
       setState(() {
@@ -55,10 +57,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tambah Postingan'),
+        title: const Text('Tambah Postingan'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -67,6 +69,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
               child: Container(
                 height: 200,
                 color: Colors.grey[200],
+                alignment: Alignment.center,
                 child: _image != null
                     ? kIsWeb
                     ? Image.network(
@@ -82,25 +85,22 @@ class _AddPostScreenState extends State<AddPostScreen> {
                   size: 100,
                   color: Colors.grey[400],
                 ),
-                alignment: Alignment.center,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: _postTextController,
               maxLines: null,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Tulis postingan Anda di sini...',
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
                 if (_postTextController.text.isNotEmpty && _image != null) {
-                  if (_imageUrl == null) {
-                    _imageUrl = await _uploadImage(_image!);
-                  }
+                  _imageUrl ??= await _uploadImage(_image!);
                   if (_imageUrl != null) {
                     FirebaseFirestore.instance.collection('posts').add({
                       'text': _postTextController.text,
@@ -113,27 +113,27 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     }).catchError((error) {
                       print('Error saving post: $error');
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('Gagal menyimpan postingan. Silakan coba lagi.'),
                         ),
                       );
                     });
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('Gagal mengunggah gambar. Silakan coba lagi.'),
                       ),
                     );
                   }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text('Silakan tulis postingan dan pilih gambar.'),
                     ),
                   );
                 }
               },
-              child: Text('Posting'),
+              child: const Text('Posting'),
             ),
           ],
         ),
