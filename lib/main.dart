@@ -66,7 +66,7 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink),
         useMaterial3: true,
-        scaffoldBackgroundColor: Colors.grey[200],
+        scaffoldBackgroundColor: Colors.blueGrey[200],
       ),
       darkTheme: ThemeData.dark(), // Tema gelap
       themeMode: _themeMode, // Gunakan mode tema yang sesuai
