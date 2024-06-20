@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:barbershopplg/screens/home_screen.dart';
 import 'package:barbershopplg/screens/detail_screen.dart';
+import 'package:barbershopplg/screens/sign_in_screen.dart'; // Import Sign In Screen
 
 class FavoriteScreen extends StatefulWidget {
   final Function(ThemeMode)? onThemeChanged;
@@ -72,21 +73,31 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 Navigator.pop(context);
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.logout), // Icon untuk logout
+              title: const Text('Keluar'), // Judul untuk logout
+              onTap: () async {
+                await _auth.signOut(); // Logout dari Firebase Auth
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignInScreen()), // Navigasi ke SignInScreen
+                );
+              },
+            ),
           ],
         ),
       ),
       appBar: AppBar(
         title: Text('Postingan Favorit'),
         actions: [
-          IconButton(
-            onPressed: () {
-              _searchController.clear();
-              setState(() {
-                _filteredPosts = _favoritePosts;
-              });
-            },
-            icon: Icon(Icons.clear),
-          ),
+          if (_searchController.text.isNotEmpty) // Menampilkan icon clear hanya jika ada teks pencarian
+            IconButton(
+              onPressed: () {
+                _searchController.clear();
+                _filterPosts('');
+              },
+              icon: Icon(Icons.clear),
+            ),
           IconButton(
             onPressed: () {
               showDialog(
@@ -95,6 +106,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   title: Text('Cari Postingan'),
                   content: TextField(
                     controller: _searchController,
+                    onChanged: (value) {
+                      _filterPosts(value);
+                    },
                     decoration: InputDecoration(
                       hintText: 'Masukkan kata kunci',
                     ),
