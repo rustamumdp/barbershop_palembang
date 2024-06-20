@@ -44,7 +44,7 @@ class HomeScreen extends StatelessWidget {
               child: Text(
                 'Menu',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.blueAccent,
                   fontSize: 24,
                 ),
               ),
@@ -173,7 +173,7 @@ class HomeScreen extends StatelessWidget {
                             Text(
                               formattedDate,
                               style: const TextStyle(
-                                color: Colors.grey,
+                                color: Colors.lightBlueAccent,
                                 fontSize: 10,
                               ),
                             ),
