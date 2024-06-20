@@ -75,6 +75,7 @@ class HomeScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => DetailScreen(
+                        postId: post.id, // Mengirimkan postId ke DetailScreen
                         username: username,
                         imageUrl: imageUrl,
                         text: text,
