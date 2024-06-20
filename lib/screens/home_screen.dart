@@ -5,6 +5,7 @@ import 'package:barbershopplg/screens/sign_in_screen.dart';
 import 'package:barbershopplg/screens/add_post_screen.dart';
 import 'package:barbershopplg/screens/detail_screen.dart';
 import 'package:barbershopplg/screens/favorite_screen.dart'; // Import FavoriteScreen
+import 'package:barbershopplg/screens/akun_screen.dart'; // Import AkunScreen
 
 class HomeScreen extends StatelessWidget {
   final Function(ThemeMode) onThemeChanged; // Callback untuk mengubah tema
@@ -64,6 +65,17 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const FavoriteScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle), // Icon untuk menuju halaman akun
+              title: const Text('Profil'), // Judul untuk menuju halaman akun
+              onTap: () {
+                Navigator.pop(context); // Tutup drawer saat menu dipilih
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AkunScreen()), // Navigasi ke AkunScreen
                 );
               },
             ),
