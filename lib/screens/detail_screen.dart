@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart'; // Import package url_launcher
 
 class DetailScreen extends StatefulWidget {
   final String postId;
@@ -28,6 +29,25 @@ class _DetailScreenState extends State<DetailScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool showComments = true; // State to toggle showing comments
   bool isFavorite = false; // State to track favorite status
+  GeoPoint? _location;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLocation();
+    _checkFavorite().then((isFavorite) {
+      setState(() {
+        this.isFavorite = isFavorite;
+      });
+    });
+  }
+
+  Future<void> _fetchLocation() async {
+    DocumentSnapshot doc = await _firestore.collection('posts').doc(widget.postId).get();
+    setState(() {
+      _location = doc['location'];
+    });
+  }
 
   Future<void> _toggleFavorite() async {
     User? user = _auth.currentUser;
@@ -91,16 +111,6 @@ class _DetailScreenState extends State<DetailScreen> {
     return false;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _checkFavorite().then((isFavorite) {
-      setState(() {
-        this.isFavorite = isFavorite;
-      });
-    });
-  }
-
   Future<void> _addComment(String text) async {
     User? user = _auth.currentUser;
     if (user != null) {
@@ -118,6 +128,17 @@ class _DetailScreenState extends State<DetailScreen> {
       setState(() {
         _commentController.clear(); // Clear the comment field after adding comment
       });
+    }
+  }
+
+  void _launchURL() async {
+    if (_location != null) {
+      final url = 'https://www.google.com/maps/search/?api=1&query=${_location!.latitude},${_location!.longitude}';
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        throw 'Could not launch $url';
+      }
     }
   }
 
@@ -174,6 +195,18 @@ class _DetailScreenState extends State<DetailScreen> {
                   ),
                 ],
               ),
+              SizedBox(height: 16),
+              if (_location != null) // Display the location link if available
+                GestureDetector(
+                  onTap: _launchURL,
+                  child: Text(
+                    'Lihat Lokasi di Google Maps',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
               SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
