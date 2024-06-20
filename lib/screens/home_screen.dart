@@ -24,7 +24,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Beranda Barbershop Palembang'),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
+        backgroundColor: Colors.pink,
         actions: [
           IconButton(
             onPressed: () {
