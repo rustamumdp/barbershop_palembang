@@ -27,6 +27,79 @@ class _DetailScreenState extends State<DetailScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool showComments = true; // State to toggle showing comments
+  bool isFavorite = false; // State to track favorite status
+
+  Future<void> _toggleFavorite() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+
+      // Check if this post is already in favorites
+      DocumentSnapshot favoriteDoc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(widget.postId)
+          .get();
+
+      if (favoriteDoc.exists) {
+        // Post is already in favorites, remove it
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('favorites')
+            .doc(widget.postId)
+            .delete();
+        setState(() {
+          isFavorite = false;
+        });
+      } else {
+        // Post is not in favorites, add it
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('favorites')
+            .doc(widget.postId)
+            .set({
+          'username': widget.username,
+          'imageUrl': widget.imageUrl,
+          'text': widget.text,
+          'formattedDate': widget.formattedDate,
+        });
+        setState(() {
+          isFavorite = true;
+        });
+      }
+    }
+  }
+
+  Future<bool> _checkFavorite() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      String userId = user.uid;
+
+      // Check if this post is already in favorites
+      DocumentSnapshot favoriteDoc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(widget.postId)
+          .get();
+
+      return favoriteDoc.exists;
+    }
+    return false;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFavorite().then((isFavorite) {
+      setState(() {
+        this.isFavorite = isFavorite;
+      });
+    });
+  }
 
   Future<void> _addComment(String text) async {
     User? user = _auth.currentUser;
@@ -82,6 +155,26 @@ class _DetailScreenState extends State<DetailScreen> {
               Text(widget.formattedDate),
               SizedBox(height: 8),
               Text(widget.text),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Deskripsi',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.red : null,
+                    ),
+                    onPressed: _toggleFavorite,
+                  ),
+                ],
+              ),
               SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -4,14 +4,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:barbershopplg/screens/sign_in_screen.dart';
 import 'add_post_screen.dart';
 import 'detail_screen.dart';
+import 'favorite_screen.dart'; // Import FavoriteScreen
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   Future<void> signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const SignInScreen()));
+      MaterialPageRoute(builder: (context) => const SignInScreen()),
+    );
   }
 
   @override
@@ -39,16 +41,10 @@ class HomeScreen extends StatelessWidget {
             return const Center(child: Text('Tidak ada postingan tersedia'));
           }
 
-          // Debug log
-          print('Documents: ${snapshot.data!.docs.length}');
-          for (var doc in snapshot.data!.docs) {
-            print('Document: ${doc.id} Data: ${doc.data()}');
-          }
-
           return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, // Jumlah kolom
-              childAspectRatio: 1, // Rasio aspek untuk membuat gambar kotak
+              crossAxisCount: 3,
+              childAspectRatio: 1,
             ),
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
@@ -62,20 +58,13 @@ class HomeScreen extends StatelessWidget {
               var imageUrl = data.containsKey('image_url') ? data['image_url'] : '';
               var text = data.containsKey('text') ? data['text'] : '';
 
-              // Debug log
-              print('Post #$index:');
-              print('Username: $username');
-              print('Image URL: $imageUrl');
-              print('Text: $text');
-              print('Formatted Date: $formattedDate');
-
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => DetailScreen(
-                        postId: post.id, // Mengirimkan postId ke DetailScreen
+                        postId: post.id,
                         username: username,
                         imageUrl: imageUrl,
                         text: text,
@@ -150,6 +139,27 @@ class HomeScreen extends StatelessWidget {
           );
         },
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favorit',
+          ),
+        ],
+        currentIndex: 0, // Set index of the current tab (Beranda in this case)
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const FavoriteScreen()),
+            );
+          }
+        },
       ),
     );
   }
