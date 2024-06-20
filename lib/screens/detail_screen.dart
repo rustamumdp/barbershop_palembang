@@ -31,7 +31,7 @@ class _DetailScreenState extends State<DetailScreen> {
   Future<void> _addComment(String text) async {
     User? user = _auth.currentUser;
     if (user != null) {
-      String username = user.email!; // Assuming the user's email as username
+      String username = user.email ?? 'Anonymous'; // Assuming the user's email as username
       await _firestore
           .collection('posts')
           .doc(widget.postId)
@@ -103,66 +103,66 @@ class _DetailScreenState extends State<DetailScreen> {
                   ),
                 ],
               ),
-              if (showComments)
-                StreamBuilder<QuerySnapshot>(
-                  stream: _firestore
-                      .collection('posts')
-                      .doc(widget.postId)
-                      .collection('comments')
-                      .orderBy('timestamp')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    }
+              if (showComments) // Show comments section only if showComments is true
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StreamBuilder<QuerySnapshot>(
+                      stream: _firestore
+                          .collection('posts')
+                          .doc(widget.postId)
+                          .collection('comments')
+                          .orderBy('timestamp')
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Center(child: Text('Belum ada komentar'));
-                    }
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Center(child: Text('Belum ada komentar'));
+                        }
 
-                    List<Widget> commentWidgets = snapshot.data!.docs.map((doc) {
-                      var data = doc.data() as Map<String, dynamic>;
-                      return ListTile(
-                        title: Text(data['username']),
-                        subtitle: Text(data['text']),
-                        trailing: Text(
-                          '${(data['timestamp'] as Timestamp).toDate().day}/${(data['timestamp'] as Timestamp).toDate().month}/${(data['timestamp'] as Timestamp).toDate().year} ${(data['timestamp'] as Timestamp).toDate().hour}:${(data['timestamp'] as Timestamp).toDate().minute}',
-                        ),
-                      );
-                    }).toList();
+                        List<Widget> commentWidgets = snapshot.data!.docs.map((doc) {
+                          var data = doc.data() as Map<String, dynamic>;
+                          return ListTile(
+                            title: Text(data['username']),
+                            subtitle: Text(data['text']),
+                            trailing: Text(
+                              '${(data['timestamp'] as Timestamp).toDate().day}/${(data['timestamp'] as Timestamp).toDate().month}/${(data['timestamp'] as Timestamp).toDate().year} ${(data['timestamp'] as Timestamp).toDate().hour}:${(data['timestamp'] as Timestamp).toDate().minute}',
+                            ),
+                          );
+                        }).toList();
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListView(
+                        return ListView(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
                           children: commentWidgets,
+                        );
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _commentController,
+                            decoration: InputDecoration(
+                              labelText: 'Tambahkan komentar',
+                            ),
+                          ),
                         ),
-                        SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _commentController,
-                                decoration: InputDecoration(
-                                  labelText: 'Tambahkan komentar',
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.send),
-                              onPressed: () {
-                                if (_commentController.text.isNotEmpty) {
-                                  _addComment(_commentController.text);
-                                }
-                              },
-                            ),
-                          ],
+                        IconButton(
+                          icon: Icon(Icons.send),
+                          onPressed: () {
+                            if (_commentController.text.isNotEmpty) {
+                              _addComment(_commentController.text);
+                            }
+                          },
                         ),
                       ],
-                    );
-                  },
+                    ),
+                  ],
                 ),
             ],
           ),
