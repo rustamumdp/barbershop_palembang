@@ -36,6 +36,7 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   final TextEditingController _commentController = TextEditingController();
   final List<Comment> _comments = [];
+  final ScrollController _scrollController = ScrollController();
 
   // Menambahkan komentar baru
   void _addComment(String text) {
@@ -82,22 +83,29 @@ class _DetailScreenState extends State<DetailScreen> {
               comment.username,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
+                fontSize: 14, // Ukuran teks lebih kecil
               ),
             ),
             const SizedBox(height: 4),
-            Text(comment.text),
+            Text(
+              comment.text,
+              style: const TextStyle(fontSize: 12), // Ukuran teks lebih kecil
+            ),
             const SizedBox(height: 4),
             Text(
               '${comment.timestamp.hour}:${comment.timestamp.minute}, ${comment.timestamp.day}/${comment.timestamp.month}/${comment.timestamp.year}',
               style: const TextStyle(
                 color: Colors.grey,
-                fontSize: 12,
+                fontSize: 10,
               ),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => _showReplyDialog(comment),
-              child: const Text('Balas'),
+              child: const Text(
+                'Balas',
+                style: TextStyle(fontSize: 12), // Ukuran teks lebih kecil
+              ),
             ),
             // Menampilkan balasan komentar
             if (comment.replies.isNotEmpty)
@@ -158,79 +166,83 @@ class _DetailScreenState extends State<DetailScreen> {
         title: const Text('Detail Postingan'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.imageUrl.isNotEmpty)
-              Center(
-                child: Image.network(
-                  widget.imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: 300,
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (widget.imageUrl.isNotEmpty)
+                Center(
+                  child: Image.network(
+                    widget.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: 300,
+                  ),
+                )
+              else
+                const Center(child: Text('Gambar tidak tersedia')),
+              const SizedBox(height: 16),
+              Text(
+                widget.username,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20, // Ukuran teks lebih kecil
                 ),
-              )
-            else
-              const Center(child: Text('Gambar tidak tersedia')),
-            const SizedBox(height: 16),
-            Text(
-              widget.username,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.formattedDate,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
+              const SizedBox(height: 8),
+              Text(
+                widget.formattedDate,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14, // Ukuran teks lebih kecil
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              widget.text,
-              style: const TextStyle(
-                fontSize: 18,
+              const SizedBox(height: 16),
+              Text(
+                widget.text,
+                style: const TextStyle(
+                  fontSize: 16, // Ukuran teks lebih kecil
+                ),
               ),
-            ),
-            const Divider(height: 32),
-            Expanded(
-              child: ListView.builder(
+              const Divider(height: 32),
+              ListView.builder(
+                controller: _scrollController,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
                 itemCount: _comments.length,
                 itemBuilder: (context, index) {
                   return _buildComment(_comments[index], 0);
                 },
               ),
-            ),
-            const Divider(height: 32),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _commentController,
-                      decoration: const InputDecoration(
-                        hintText: 'Tambahkan komentar...',
+              const Divider(height: 32),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _commentController,
+                        decoration: const InputDecoration(
+                          hintText: 'Tambahkan komentar...',
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () {
-                      if (_commentController.text.isNotEmpty) {
-                        _addComment(_commentController.text);
-                      }
-                    },
-                  ),
-                ],
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () {
+                        if (_commentController.text.isNotEmpty) {
+                          _addComment(_commentController.text);
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
