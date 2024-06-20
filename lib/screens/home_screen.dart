@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:barbershopplg/screens/sign_in_screen.dart';
-import 'add_post_screen.dart';
-import 'detail_screen.dart';
-import 'favorite_screen.dart'; // Import FavoriteScreen
+import 'package:barbershopplg/screens/add_post_screen.dart';
+import 'package:barbershopplg/screens/detail_screen.dart';
+import 'package:barbershopplg/screens/favorite_screen.dart'; // Import FavoriteScreen
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final Function(ThemeMode) onThemeChanged; // Callback untuk mengubah tema
+
+  const HomeScreen({Key? key, required this.onThemeChanged}) : super(key: key);
 
   Future<void> signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -21,7 +23,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Beranda Barbershop Palembang'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         actions: [
           IconButton(
             onPressed: () {
@@ -30,6 +32,67 @@ class HomeScreen extends StatelessWidget {
             icon: const Icon(Icons.logout),
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Beranda'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text('Favorit'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FavoriteScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.brightness_6),
+              title: const Text('Mode Terang'),
+              onTap: () {
+                onThemeChanged(ThemeMode.light);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.brightness_2),
+              title: const Text('Mode Gelap'),
+              onTap: () {
+                onThemeChanged(ThemeMode.dark);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.brightness_auto),
+              title: const Text('Mode Sistem'),
+              onTap: () {
+                onThemeChanged(ThemeMode.system);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('posts').orderBy('timestamp', descending: true).snapshots(),

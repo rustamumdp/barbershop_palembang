@@ -4,7 +4,7 @@ import 'package:barbershopplg/screens/home_screen.dart';
 import 'package:barbershopplg/screens/sign_up_screen.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+  const SignInScreen({Key? key}) : super(key: key);
 
   @override
   _SignInScreenState createState() => _SignInScreenState();
@@ -21,9 +21,9 @@ class _SignInScreenState extends State<SignInScreen> {
       appBar: AppBar(
         title: const Text('Sign In'),
       ),
-      body: Stack(  // <-- Ukuran bg
+      body: Stack(
         children: [
-          Positioned.fill(  // <-- ukuran bg
+          Positioned.fill(
             child: Image.asset(
               'assets/background.jpg', // Ganti dengan path gambar Anda
               fit: BoxFit.cover,
@@ -40,8 +40,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       border: OutlineInputBorder(),
-                      filled: true, // Menambahkan latar belakang solid pada TextField
-                      fillColor: Colors.white70, // Warna latar belakang TextField
+                      filled: true,
+                      fillColor: Colors.white70,
                     ),
                   ),
                   const SizedBox(height: 16.0),
@@ -50,8 +50,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Password',
                       border: OutlineInputBorder(),
-                      filled: true, // Menambahkan latar belakang solid pada TextField
-                      fillColor: Colors.white70, // Warna latar belakang TextField
+                      filled: true,
+                      fillColor: Colors.white70,
                     ),
                     obscureText: true,
                   ),
@@ -60,7 +60,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     onPressed: () async {
                       final email = _emailController.text.trim();
                       final password = _passwordController.text;
-        
+
                       // Validasi email
                       if (email.isEmpty || !isValidEmail(email)) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -70,7 +70,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         );
                         return;
                       }
-        
+
                       // Validasi password
                       if (password.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -80,17 +80,25 @@ class _SignInScreenState extends State<SignInScreen> {
                         );
                         return;
                       }
-        
+
                       try {
                         // Lakukan sign in dengan email dan password
                         await FirebaseAuth.instance.signInWithEmailAndPassword(
                           email: email,
                           password: password,
                         );
-        
+
                         // Jika berhasil sign in, navigasi ke halaman beranda
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const HomeScreen()),
+                          MaterialPageRoute(builder: (context) => HomeScreen(onThemeChanged: (themeMode) {
+                            // Implementasi logika perubahan tema di sini
+                            // Contoh: Mengubah tema aplikasi berdasarkan themeMode
+                            // if (themeMode == ThemeMode.light) {
+                            //   // Implementasi tema terang
+                            // } else {
+                            //   // Implementasi tema gelap
+                            // }
+                          })),
                         );
                       } on FirebaseAuthException catch (error) {
                         print('Error code: ${error.code}');
@@ -138,19 +146,19 @@ class _SignInScreenState extends State<SignInScreen> {
                       );
                     },
                     style: TextButton.styleFrom(
-                      backgroundColor: Colors.black.withOpacity(0.5), // Ubah warna dan opasitas sesuai kebutuhan
-                      padding: const EdgeInsets.all(12), // Tambahkan padding agar tombol terlihat lebih baik
+                      backgroundColor: Colors.black.withOpacity(0.5),
+                      padding: const EdgeInsets.all(12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8), // Ubah sesuai kebutuhan
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     child: const Text(
-                    'Belum punya akun? Sign up',
-                    style: TextStyle(
-                      color: Colors.pink, // Ubah warna teks sesuai kebutuhan
+                      'Belum punya akun? Sign up',
+                      style: TextStyle(
+                        color: Colors.pink,
+                      ),
                     ),
                   ),
-                ),
                 ],
               ),
             ),
