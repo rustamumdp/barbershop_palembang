@@ -40,12 +40,12 @@ class HomeScreen extends StatelessWidget {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.pinkAccent,
               ),
               child: Text(
                 'Menu',
                 style: TextStyle(
-                  color: Colors.blueAccent,
+                  color: Colors.white,
                   fontSize: 24,
                 ),
               ),
