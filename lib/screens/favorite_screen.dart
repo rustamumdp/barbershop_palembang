@@ -17,6 +17,21 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  late List<DocumentSnapshot> _favoritePosts;
+  late List<DocumentSnapshot> _filteredPosts;
+  TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFavorites().then((favorites) {
+      setState(() {
+        _favoritePosts = favorites;
+        _filteredPosts = _favoritePosts;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,140 +75,144 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           ],
         ),
       ),
-      body: Stack(
-        children: [
-          FutureBuilder<List<DocumentSnapshot>>(
-            future: _fetchFavorites(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('Belum ada postingan favorit'));
-              }
-
-              List<DocumentSnapshot> favoritePosts = snapshot.data!;
-              return Padding(
-                padding: const EdgeInsets.only(top: 56.0), // Jarak dari AppBar kustom
-                child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 0.9, // Sesuaikan dengan aspek rasio item
-                    crossAxisSpacing: 8.0,
-                    mainAxisSpacing: 8.0,
+      appBar: AppBar(
+        title: Text('Postingan Favorit'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              _searchController.clear();
+              setState(() {
+                _filteredPosts = _favoritePosts;
+              });
+            },
+            icon: Icon(Icons.clear),
+          ),
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Cari Postingan'),
+                  content: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Masukkan kata kunci',
+                    ),
                   ),
-                  itemCount: favoritePosts.length,
-                  itemBuilder: (context, index) {
-                    var data = favoritePosts[index].data() as Map<String, dynamic>;
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailScreen(
-                              postId: favoritePosts[index].id,
-                              username: data['username'] ?? 'Anonim',
-                              imageUrl: data['imageUrl'] ?? '',
-                              text: data['text'] ?? '',
-                              formattedDate: data['formattedDate'] ?? '',
-                            ),
-                          ),
-                        );
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
                       },
-                      child: Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: Image.network(
-                                  data['imageUrl'] ?? '',
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Center(child: Text('Gagal memuat gambar'));
-                                  },
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    data['username'] ?? 'Anonim',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    data['text'] ?? '',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    data['formattedDate'] ?? '',
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                      child: Text('Batal'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        _filterPosts(_searchController.text);
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('Cari'),
+                    ),
+                  ],
                 ),
               );
             },
+            icon: Icon(Icons.search),
           ),
-          // Custom AppBar
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Theme.of(context).primaryColor,
-              height: 56.0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pushReplacement(
+        ],
+      ),
+      body: Stack(
+        children: [
+          if (_filteredPosts.isEmpty)
+            Center(
+              child: Text('Belum ada postingan favorit'),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(top: 56.0),
+              child: GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 0.9,
+                  crossAxisSpacing: 8.0,
+                  mainAxisSpacing: 8.0,
+                ),
+                itemCount: _filteredPosts.length,
+                itemBuilder: (context, index) {
+                  var data = _filteredPosts[index].data() as Map<String, dynamic>;
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) =>
-                            HomeScreen(onThemeChanged: widget.onThemeChanged ?? (theme) {})),
+                        MaterialPageRoute(
+                          builder: (context) => DetailScreen(
+                            postId: _filteredPosts[index].id,
+                            username: data['username'] ?? 'Anonim',
+                            imageUrl: data['imageUrl'] ?? '',
+                            text: data['text'] ?? '',
+                            formattedDate: data['formattedDate'] ?? '',
+                          ),
+                        ),
                       );
                     },
-                  ),
-                  const Text(
-                    'Postingan Favorit',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
+                    child: Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.network(
+                                data['imageUrl'] ?? '',
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Center(child: Text('Gagal memuat gambar'));
+                                },
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  data['username'] ?? 'Anonim',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  data['text'] ?? '',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  data['formattedDate'] ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 48), // Space holder to balance the layout
-                ],
+                  );
+                },
               ),
             ),
-          ),
         ],
       ),
     );
@@ -216,5 +235,23 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     }
 
     return favorites;
+  }
+
+  void _filterPosts(String query) {
+    List<DocumentSnapshot> filteredList = [];
+    if (query.isNotEmpty) {
+      filteredList = _favoritePosts.where((post) {
+        var data = post.data() as Map<String, dynamic>;
+        var username = data['username']?.toString().toLowerCase() ?? '';
+        var text = data['text']?.toString().toLowerCase() ?? '';
+        return username.contains(query.toLowerCase()) || text.contains(query.toLowerCase());
+      }).toList();
+    } else {
+      filteredList = _favoritePosts;
+    }
+
+    setState(() {
+      _filteredPosts = filteredList;
+    });
   }
 }
