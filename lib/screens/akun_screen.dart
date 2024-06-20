@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:barbershopplg/screens/detail_screen.dart';
 
 class AkunScreen extends StatefulWidget {
@@ -11,11 +15,12 @@ class AkunScreen extends StatefulWidget {
 class _AkunScreenState extends State<AkunScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final ImagePicker _picker = ImagePicker();
 
   late User _currentUser;
   DocumentSnapshot? _userProfile;
   QuerySnapshot? _userPosts;
-
   bool isLoading = true;
 
   @override
@@ -25,6 +30,9 @@ class _AkunScreenState extends State<AkunScreen> {
   }
 
   Future<void> _loadData() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       _currentUser = _auth.currentUser!;
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser.uid).get();
@@ -32,16 +40,13 @@ class _AkunScreenState extends State<AkunScreen> {
       if (userDoc.exists) {
         var userData = userDoc.data() as Map<String, dynamic>?;
 
-        // Periksa apakah userData tidak null dan memiliki kunci 'photoUrl'
         if (userData != null && userData.containsKey('photoUrl')) {
           _userProfile = userDoc;
           _userPosts = await _firestore.collection('posts').where('userId', isEqualTo: _currentUser.uid).get();
         } else {
-          // Handle case where 'photoUrl' field is missing or userDoc.data() is null
           print('Document does not exist or photoUrl field is missing');
         }
       } else {
-        // Handle case where document doesn't exist
         print('Document does not exist');
       }
     } catch (e) {
@@ -50,6 +55,27 @@ class _AkunScreenState extends State<AkunScreen> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _changeProfilePicture() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        File file = File(pickedFile.path);
+        String fileName = 'profile_pictures/${_currentUser.uid}.jpg';
+        TaskSnapshot uploadTask = await _storage.ref().child(fileName).putFile(file);
+
+        String downloadUrl = await uploadTask.ref.getDownloadURL();
+
+        await _firestore.collection('users').doc(_currentUser.uid).update({'photoUrl': downloadUrl});
+
+        // Reload user data after updating profile picture
+        await _loadData();
+      }
+    } catch (e) {
+      print('Error updating profile picture: $e');
     }
   }
 
@@ -67,11 +93,23 @@ class _AkunScreenState extends State<AkunScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: _userProfile != null
-                    ? NetworkImage(_userProfile!['photoUrl'])
-                    : AssetImage('assets/images/default_profile.png') as ImageProvider,
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _userProfile != null && _userProfile!['photoUrl'] != null
+                        ? NetworkImage(_userProfile!['photoUrl'])
+                        : AssetImage('assets/images/default_profile.png') as ImageProvider,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: IconButton(
+                      icon: Icon(Icons.camera_alt, color: Colors.blue),
+                      onPressed: _changeProfilePicture,
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 16.0),
