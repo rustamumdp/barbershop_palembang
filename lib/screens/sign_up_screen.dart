@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:barbershopplg/screens/home_screen.dart';
+
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  const SignUpScreen({Key? key}) : super(key: key);
+
   @override
   SignUpScreenState createState() => SignUpScreenState();
 }
+
 class SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,8 +57,15 @@ class SignUpScreenState extends State<SignUpScreen> {
                     password: password,
                   );
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const
-                    HomeScreen()),
+                    MaterialPageRoute(builder: (context) => HomeScreen(onThemeChanged: (themeMode) {
+                      // Implementasi logika perubahan tema di sini
+                      // Contoh: Mengubah tema aplikasi berdasarkan themeMode
+                      // if (themeMode == ThemeMode.light) {
+                      //   // Implementasi tema terang
+                      // } else {
+                      //   // Implementasi tema gelap
+                      // }
+                    })),
                   );
                 } on FirebaseAuthException catch (e) {
                   if (e.code == 'weak-password') {
