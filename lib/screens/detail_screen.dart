@@ -133,14 +133,6 @@ class _DetailScreenState extends State<DetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.username,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              SizedBox(height: 8),
               if (widget.imageUrl.isNotEmpty)
                 Image.network(
                   widget.imageUrl,
@@ -152,18 +144,25 @@ class _DetailScreenState extends State<DetailScreen> {
               else
                 Center(child: Text('Gambar tidak tersedia')),
               SizedBox(height: 8),
-              Text(widget.formattedDate),
+              Text(
+                widget.username,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
               SizedBox(height: 8),
-              Text(widget.text),
+              Text(widget.formattedDate),
               SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Deskripsi',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                  Expanded(
+                    child: Text(
+                      widget.text,
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -196,6 +195,7 @@ class _DetailScreenState extends State<DetailScreen> {
                   ),
                 ],
               ),
+              SizedBox(height: 16),
               if (showComments) // Show comments section only if showComments is true
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
