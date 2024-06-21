@@ -22,6 +22,7 @@ class _AkunScreenState extends State<AkunScreen> {
   DocumentSnapshot? _userProfile;
   QuerySnapshot? _userPosts;
   bool isLoading = true;
+  String? _profileImageUrl;
 
   @override
   void initState() {
@@ -42,6 +43,8 @@ class _AkunScreenState extends State<AkunScreen> {
 
         if (userData != null && userData.containsKey('photoUrl')) {
           _userProfile = userDoc;
+          _profileImageUrl = userData['photoUrl'];
+          print('Profile image URL: $_profileImageUrl'); // Logging untuk debugging
           _userPosts = await _firestore.collection('posts').where('userId', isEqualTo: _currentUser.uid).get();
         } else {
           print('Document does not exist or photoUrl field is missing');
@@ -68,6 +71,7 @@ class _AkunScreenState extends State<AkunScreen> {
         TaskSnapshot uploadTask = await _storage.ref().child(fileName).putFile(file);
 
         String downloadUrl = await uploadTask.ref.getDownloadURL();
+        print('New profile image URL: $downloadUrl'); // Logging untuk debugging
 
         await _firestore.collection('users').doc(_currentUser.uid).update({'photoUrl': downloadUrl});
 
@@ -97,8 +101,8 @@ class _AkunScreenState extends State<AkunScreen> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: _userProfile != null && _userProfile!['photoUrl'] != null
-                        ? NetworkImage(_userProfile!['photoUrl'])
+                    backgroundImage: _profileImageUrl != null
+                        ? NetworkImage(_profileImageUrl!)
                         : AssetImage('assets/images/default_profile.png') as ImageProvider,
                   ),
                   Positioned(
